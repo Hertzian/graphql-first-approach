@@ -1,9 +1,9 @@
 const path = require('path')
 
 const express = require('express')
-const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const multer = require('multer')
+require('dotenv').config()
 
 const feedRoutes = require('./routes/feed')
 const authRoutes = require('./routes/auth')
@@ -31,8 +31,7 @@ const fileFilter = (req, file, cb) => {
   }
 }
 
-// app.use(bodyParser.urlencoded()); // x-www-form-urlencoded <form>
-app.use(bodyParser.json()) // application/json
+app.use(express.json()) // application/json
 app.use(
   multer({ storage: fileStorage, fileFilter: fileFilter }).single('image')
 )
@@ -60,12 +59,14 @@ app.use((error, req, res, next) => {
 })
 
 mongoose
-  .connect(
-    'mongodb+srv://maximilian:9u4biljMQc4jjqbe@cluster0-ntrwp.mongodb.net/messages?retryWrites=true'
-  )
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
   .then((result) => {
-    const server = app.listen(8080)
+    const server = app.listen(process.env.PORT)
     const io = require('./socket').init(server)
+    console.log(`Running on http://localhost:${process.env.PORT}`)
     io.on('connection', (socket) => {
       console.log('Client connected')
     })
