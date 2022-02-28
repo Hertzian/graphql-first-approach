@@ -5,6 +5,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const multer = require('multer')
 const { graphqlHTTP } = require('express-graphql')
+require('dotenv').config()
 
 const graphqlSckema = require('./graphql/schema')
 const graphqlResolver = require('./graphql/resolvers')
