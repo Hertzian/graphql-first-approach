@@ -1,12 +1,13 @@
 const path = require('path')
+require('dotenv').config()
 
 const express = require('express')
-const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const multer = require('multer')
+const { graphqlHTTP } = require('express-graphql')
 
-const feedRoutes = require('./routes/feed')
-const authRoutes = require('./routes/auth')
+const graphqlSckema = require('./graphql/schema')
+const graphqlResolver = require('./graphql/resolvers')
 
 const app = express()
 
@@ -31,8 +32,7 @@ const fileFilter = (req, file, cb) => {
   }
 }
 
-// app.use(bodyParser.urlencoded()); // x-www-form-urlencoded <form>
-app.use(bodyParser.json()) // application/json
+app.use(express.json()) // application/json
 app.use(
   multer({ storage: fileStorage, fileFilter: fileFilter }).single('image')
 )
@@ -48,8 +48,13 @@ app.use((req, res, next) => {
   next()
 })
 
-app.use('/feed', feedRoutes)
-app.use('/auth', authRoutes)
+app.use(
+  '/graphql',
+  graphqlHTTP({
+    schema: graphqlSckema,
+    rootValue: graphqlResolver
+  })
+)
 
 app.use((error, req, res, next) => {
   console.log(error)
@@ -60,14 +65,12 @@ app.use((error, req, res, next) => {
 })
 
 mongoose
-  .connect(
-    'mongodb+srv://maximilian:9u4biljMQc4jjqbe@cluster0-ntrwp.mongodb.net/messages?retryWrites=true'
-  )
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
   .then((result) => {
-    const server = app.listen(8080)
-    const io = require('./socket').init(server)
-    io.on('connection', (socket) => {
-      console.log('Client connected')
-    })
+    app.listen(process.env.PORT)
+    console.log(`Server running on http://localhost:${process.env.PORT}`)
   })
   .catch((err) => console.log(err))
