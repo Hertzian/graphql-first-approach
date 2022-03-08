@@ -6,11 +6,13 @@ const mongoose = require('mongoose')
 const multer = require('multer')
 const { graphqlHTTP } = require('express-graphql')
 require('dotenv').config()
+const cors = require('cors')
 
 const graphqlSckema = require('./graphql/schema')
 const graphqlResolver = require('./graphql/resolvers')
 
 const app = express()
+app.use(cors())
 
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -46,6 +48,8 @@ app.use((req, res, next) => {
     'OPTIONS, GET, POST, PUT, PATCH, DELETE'
   )
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  // this solves the cors error or, use cors middleware
+  //if (req.method === 'OPTIONS') return res.sendStatus(200)
   next()
 })
 
